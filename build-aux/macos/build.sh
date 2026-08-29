@@ -3,6 +3,8 @@
 meson setup build --prefix=/ -Dbindir=Contents/MacOS -Ddatadir=Contents/Resources -Dlocaledir=Contents/Resources/locale -Dprofile=default
 meson install -C build --destdir $(pwd)/Morse.app
 
+glib-compile-schemas $(pwd)/Morse.app/Contents/Resources/glib-2.0/schemas
+
 dylibbundler -od -b -x Morse.app/Contents/MacOS/morse -d Morse.app/Contents/Frameworks/ -p @executable_path/../Frameworks/
 
 mkdir morse.iconset
@@ -21,3 +23,5 @@ codesign --force --deep -s - Morse.app
 create-dmg --volname "Morse" --volicon "morse.icns" --window-pos 200 120 \
 --window-size 800 400 --icon-size 100 --icon "Morse.app" 200 190 --hide-extension "Morse.app" \
 --app-drop-link 600 185 --skip-jenkins "morse-macos-aarch64.dmg" "./Morse.app"
+
+
