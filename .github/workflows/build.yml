@@ -6,6 +6,19 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Job"
+        required: true
+        type: choice
+        options:
+          - All
+          - Flatpak
+          - MacOS
+          - Windows
+          - Debian
+          - Binary (Linux)
 
 jobs:
   build-flatpak:
@@ -13,6 +26,9 @@ jobs:
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
+    if: |
+      (github.event_name == 'workflow_dispatch' && (inputs.job == 'All' || inputs.job == 'Flatpak')) ||
+      github.event_name != 'workflow_dispatch'
     strategy:
       matrix:
         include:
@@ -39,8 +55,8 @@ jobs:
   build-windows:
     name: Windows
     if: |
-      github.ref_type == 'tag' || 
-      contains(github.event.head_commit.message, '[force windows]')
+      github.ref_type == 'tag' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.job == 'All' || inputs.job == 'Windows'))
     env:
       PYTHONUTF8: "1"
     strategy:
@@ -95,8 +111,8 @@ jobs:
     name: MacOS
     runs-on: macos-26
     if: |
-      github.ref_type == 'tag' || 
-      contains(github.event.head_commit.message, '[force macos]')
+      github.ref_type == 'tag' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.job == 'All' || inputs.job == 'MacOS'))
     steps:
       - uses: actions/checkout@v7
       - name: "Install System Packages"
@@ -116,7 +132,7 @@ jobs:
     name: "Debian"
     if: |
       github.ref_type == 'tag' || 
-      contains(github.event.head_commit.message, '[force debian]')
+      (github.event_name == 'workflow_dispatch' && (inputs.job == 'All' || inputs.job == 'Debian'))
     strategy:
       matrix:
         include:
@@ -143,8 +159,8 @@ jobs:
   build-binary:
     name: "Linux Binary"
     if: |
-      github.ref_type == 'tag' || 
-      contains(github.event.head_commit.message, '[force binary]')
+      github.ref_type == 'tag' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.job == 'All' || inputs.job == 'Binary (Linux)'))
     strategy:
       matrix:
         include:
